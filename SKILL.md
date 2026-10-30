@@ -6,7 +6,10 @@ description: Fix the ChatGPT Windows desktop app (OpenAI Codex MSIX) "Messaging 
 # ChatGPT desktop dot 修复（Messaging account changed）
 
 2026-10-29/30 在 ChatGPT 桌面版（OpenAI.Codex MSIX 26.1023 / 26.1027，Win10/11）上闭环验证。
-症状固定：点侧栏 dot → 整窗错误边界「ChatGPT 遇到了问题 / 出了点问题。请重试以继续」。
+症状两个变体（同一类故障）：
+- 中文：点侧栏 dot → 整窗「ChatGPT 遇到了问题 / 出了点问题。请重试以继续」；
+- 英文：整窗「ChatGPT hit a snag / Something went wrong. Try again to continue」（app 壳层
+  Suspense 边界，此时 UIA 树可能整个为空，按钮/侧栏全不可见）。
 
 ## 根因链（源码级已证，勿再走弯路）
 
@@ -21,6 +24,15 @@ description: Fix the ChatGPT Windows desktop app (OpenAI Codex MSIX) "Messaging 
    错误页 Retry / Ctrl+R **全部源码级无效**（均已实测失败）。
 5. 唯一可靠恢复 = 冷启动应用（新进程重建原生订阅）。多次重启实例当场恢复；
    应用内手段从未恢复过。
+
+## 复发引擎（实测每小时一轮）
+
+主进程每小时在整点后约 **xx:23:40Z** 出现一轮 10–60 秒的
+`sa_server_request_failed "Workspace routing is unavailable"` 突发（伴随
+`chatgpt-account-lookup failureType=accounts_request_failed`，随后主进程层自愈）。
+哪个渲染查询撞进这个窗口，哪个表面就死：撞上 dot 视图 → 中文边界；撞上 app 壳层
+Suspense（如 `app-prefetch-impl`）→ 英文 "hit a snag" 且 UIA 树可能为空。
+重启后下一轮突发仍会来，属上游 auth 刷新缺陷；恢复 = 重启，别试图在突发窗口内修。
 
 ## 已证无效的手法（别再试）
 
@@ -56,8 +68,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dot-verify.ps1 `
    先 CloseMainWindow 15s，未退则 `taskkill /T /F`（仅该 PID 树），再用
    `explorer.exe shell:AppsFolder\OpenAI.Codex_2p2nqsd0c76g0!App` 正常身份重启，
    等新主窗口 ≤150s + 静置 10s。
-3. **验证 ×2**：约 25s 后 OpenDot 15s 观测；再约 75s 后重复（都要带 `-DotName`）。
+3. **验证 ×2**：启动后渲染需 60–90s 才出侧栏；若首次报 "no matching Button"，
+   等 60s 重试一次。OpenDot 15s 观测两轮（间隔 ≥75s，都要带 `-DotName`），
    两次 exit 0 才算恢复。可用 `-Action Capture -Image <new.png>` 留图给用户目视。
+   检测白名单已含中/英变体（含 `ChatGPT hit a snag` / `Try again to continue`）。
 4. 所有动作走 evidence-gate（`gate.py run`），每次全新 Out/Image，禁止覆盖；
    collector exit 0 ≠ 业务成功，必须读 JSON 核 `dotTab/editorEnabled/errorSeen/finalWindowOk`。
 

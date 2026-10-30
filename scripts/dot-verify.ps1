@@ -69,7 +69,8 @@ $AE=[System.Windows.Automation.AutomationElement]
 $TS=[System.Windows.Automation.TreeScope]
 $CT=[System.Windows.Automation.ControlType]
 $script:ErrNames=@('ChatGPT 遇到了问题','ChatGPT遇到了问题','出了点问题','出了点问题。请重试以继续','ChatGPT encountered an issue',
-  'ChatGPT encountered an error','Something went wrong','Oops, something went wrong','Unable to open this conversation',
+  'ChatGPT encountered an error','ChatGPT hit a snag','hit a snag','Something went wrong','Something went wrong. Try again to continue',
+  'Try again to continue','Oops, something went wrong','Unable to open this conversation',
   "This conversation isn't available",'This conversation is unavailable','This conversation is no longer available')
 if(-not $DotName){ $script:DotToken=''; $script:DotExact=@() }
 else { $script:DotToken=($DotName -replace '^🔴','' -replace '🔴$','')
