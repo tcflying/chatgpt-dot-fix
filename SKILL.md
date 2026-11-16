@@ -11,7 +11,33 @@ description: Fix ChatGPT desktop dots on Windows when a connected computer canno
 | --- | --- |
 | 电脑 connected，但创建进程报 Windows sandbox cannot enforce / refusing to run unsandboxed | A：本机执行沙箱 |
 | Messaging account changed、local 432、错误页或每小时闪崩 | B：历史 UI/索引故障 |
+| Dot 只分析不实施、承诺稍后检查却没有后续结果 | C：任务执行与结果回收 |
+| Dot 根标识可读，但发送报 thread not found | C：先核实目标类型和发送接口 |
 | 只有工具未发现、连接瞬断或旧错误转述 | 先重新查询原 Dot 的环境和实际工具 schema，保留“未确认” |
+
+## C：任务执行与结果回收
+
+- **先分清对象。** TBO Dot 的个人标识、消息房间、durable 根线程不等于普通
+  ChatGPT Work 聊天。读到根线程概要不代表 `send_message_to_thread` 支持发送；
+  当前接口缺少房间发送能力时，不猜 ID、不盲目 navigate/retry。
+- **先程序后界面。** 用 [codex-dot-bus](https://github.com/tcflying/codex-dot-bus)
+  的最小路由核实接口。程序无法确认送达或回复时才用已登录正常客户端；需要新消息
+  ID/request ID 和对应回复。填入草稿、点击提示、操作者亲自点发送均不能冒充自动送达。
+  不跳过正常发送的 app-attest/Sentinel 完整性流程。
+- **执行原文。** 官方委派包装会编码 XML 实体；提取 `<input>` 时只解码一层，再
+  使用原代码。不要把 `&amp;`、`&gt;=` 当运算符，也不要反复反转义原始源码。
+- **用结果结束任务。** 已授权的本地实现可一次性交给该仓库的
+  [持久执行器](https://github.com/tcflying/codex-dot-bus#durable-local-execution)：
+  明确目标、工作目录、模型和外部验收，持久记录尝试，失败后有界修复，恢复时先收回
+  原结果。分析、建议、ACK 都不能替代验收。它解决本地执行连续性，不新增 Dot 房间 API。
+- **核实唤醒证据。** 规则保存、调度登记、实际触发、完成回执是四件事。旧自动化均停用
+  不足以证明某次一次性/临时计时未创建；房间的 `turn_trigger=clock` 才是该次实际触发
+  的证据之一。不能由一次成功推定每次云端唤醒可靠。原始记录缺失时保留这个具体缺口，
+  不靠重复加规则或创建循环提醒冒充修复。
+
+进度只报正在执行的步骤、已完成结果和具体阻塞。完整验收应包含一次实际失败后的
+自动修复、控制程序重启后的同一尝试回收，以及独立验收成功；清楚区分夹具测试、
+真实模型执行、Dot 消息回传和生产发布，勿把其中一项替代其余项。
 
 ## A：电脑在线但无法执行命令（2026-11-16）
 
