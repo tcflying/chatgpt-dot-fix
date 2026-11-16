@@ -1,11 +1,11 @@
 ---
 name: chatgpt-dot-fix
-description: Fix ChatGPT desktop dots on Windows when a connected computer cannot execute commands with "windows sandbox backend cannot enforce" / "refusing to run unsandboxed", or when "Messaging account changed", "Workspace routing is unavailable" (432), a retry error page, or hourly flashing breaks the UI. Routes execution failures to verified MXC recovery and UI failures to the historical index/cold-start procedure.
+description: Diagnose ChatGPT desktop Dot execution, messaging and stalled-task failures. Route Windows sandbox errors to verified MXC recovery, account/432/UI failures to historical index recovery, and analysis-only or interrupted local work to explicit durable execution with verified results.
 ---
 
 # ChatGPT desktop dot 修复
 
-先按当前症状选分支；两类故障的处理不能互相替代。
+先按当前症状选分支；不同故障的处理不能互相替代。
 
 | 当前证据 | 分支 |
 | --- | --- |
